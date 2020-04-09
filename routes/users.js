@@ -3,14 +3,15 @@ const express = require('express');
 const router = express.Router();
 const UserService = require('../services/user_service');
 /* GET users listing. */
-router.get('/', (req, res) => {
-  res.locals.users = UserService.getAllUsers();
+router.get('/', async (req, res) => {
+  res.locals.users = await UserService.getAllUsers();
+  console.log(res.locals.users.length);
   res.render('users');
 });
 
 router.post('/', (req, res) => {
-  const { firstName, lastName, age } = req.body;
-  const u = UserService.addNewUser(firstName, lastName, age);
+  const { name, age } = req.body;
+  const u = UserService.addNewUser(name, age);
   res.json(u);
 });
 

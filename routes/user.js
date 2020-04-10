@@ -2,11 +2,20 @@ const express = require('express');
 
 const router = express.Router();
 const UserService = require('../services/user_service');
+const HTTPReqParamError = require('../errors/http_request_param_error');
+
 /* GET users listing. */
-router.get('/', async (req, res) => {
-  res.locals.users = await UserService.getAllUsers();
-  console.log(res.locals.users.length);
-  res.render('users');
+router.get('/', async (req, res, next) => {
+  (async () => {
+    const users = await UserService.getAllUsers();
+    res.locals.users = users;
+  })()
+    .then(() => {
+      res.render('users');
+    })
+    .catch((e) => {
+      next(e);
+    });
 });
 
 router.post('/', (req, res) => {
@@ -16,9 +25,18 @@ router.post('/', (req, res) => {
 });
 
 router.get('/:userId', (req, res) => {
-  const user = UserService.getUserById(Number(req.params.userId));
-  res.locals.user = user;
-  res.render('user');
+  (async () => {
+    const { userId } = req.params;
+    if (isNaN(Number(userId))) throw new HTTPReqParamError('userId', '用户id不能为空', 'user id can not be emtpy');
+    const user = UserService.getUserById(Number(userId));
+    res.locals.user = user;
+    res.render('user');
+  })()
+    .catch((e) => {
+      console.log(e);
+      res.json(e);
+    });
+
 });
 
 

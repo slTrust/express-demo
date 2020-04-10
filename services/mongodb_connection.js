@@ -1,16 +1,17 @@
 const mongoose = require('mongoose');
+const logger = require('../utils/loggers/app_logger');
 
 mongoose.Promise = Promise;
 
-const url = 'mongodb://localhost:27017/what_i_love';
-mongoose.connect(url, { useMongoClient: true });
+const uri = 'mongodb://localhost:27017/what_i_love';
+mongoose.connect(uri, { useMongoClient: true });
 const db = mongoose.connection;
 
 db.on('open', () => {
-  console.log('db connected!');
+  logger.info(`successfully connecting to db, uri: ${uri}`);
 });
 db.on('error', (e) => {
-  console.log(e);
+  logger.error(`error connecting to db, uri: ${uri}`, { err: e });
 });
 
 module.exports = db;

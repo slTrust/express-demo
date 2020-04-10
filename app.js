@@ -7,8 +7,7 @@ const logger = require('./utils/loggers/logger');
 require('./services/mongodb_connection');
 const NotFoundError = require('./errors/http_errors/resource_not_found_error');
 
-const index = require('./routes/index');
-const user = require('./routes/user');
+const apiIndex = require('./routes/api');
 
 const app = express();
 
@@ -25,8 +24,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
-app.use('/user', user);
+app.use('/api', apiIndex);
 
 app.use((req, res, next) => {
   if (!res.headersSent) {
@@ -36,7 +34,6 @@ app.use((req, res, next) => {
 
 app.use(errorHandler());
 
-
 process.on('uncaughtException', (err) => {
   logger.error('uncaught exception', { err });
 });
@@ -44,6 +41,5 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledReject', (reason, p) => {
   logger.error('unhandledRejection', { reason, p });
 });
-
 
 module.exports = app;

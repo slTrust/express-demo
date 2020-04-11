@@ -7,7 +7,7 @@ const logger = require('./utils/loggers/logger');
 require('./services/mongodb_connection');
 const NotFoundError = require('./errors/http_errors/resource_not_found_error');
 
-const apiIndex = require('./routes/api');
+const apiIndex = require('./routes/api/index_bak');
 
 const app = express();
 

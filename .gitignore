@@ -2,3 +2,8 @@ node_modules/
 
 .idea/
 .vscode/
+# 生成密码的key
+cipher/
+
+logs/
+

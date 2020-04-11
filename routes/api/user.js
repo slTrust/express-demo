@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const UserService = require('../../services/user_service');
 const apiRes = require('../../utils/api_response');
+const auth = require('../../middlewares/auth');
 
 /* GET users listing. */
 router.get('/', async (req, res, next) => {
@@ -23,11 +24,13 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', (req, res, next) => {
   (async () => {
-    const { name, age } = req.body;
-    const user = UserService.addNewUser(name, age);
-    return {
-      user,
-    };
+    const { username, password, name } = req.body;
+    const result = UserService.addNewUser({
+      username,
+      password,
+      name,
+    });
+    return result;
   })()
     .then((r) => {
       res.data = r;
@@ -55,17 +58,7 @@ router.get('/:userId', (req, res, next) => {
     });
 });
 
-
-router.post('/:userId/subscription', (req, res, next) => {
-  try {
-    const sub = UserService.createSubScription(Number(req.params.userId),req.body.url);
-    res.json(sub);
-  } catch (e) {
-    next(e);
-  }
-});
-
-router.get('/:userId/subscription/:subscriptionId', (req, res, next) => {
+router.post('/:userId/subscription', auth(), (req, res, next) => {
   (async () => {
     const { userId } = req.params;
     const sub = UserService.createSubscription(

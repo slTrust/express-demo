@@ -23,7 +23,7 @@ const Debug = {
     host: 'localhost',
   },
 };
-if (process.MODE_ENV === 'production') {
+if (process.NODE_ENV === 'production') {
   module.exports = Production;
 } else {
   module.exports = Debug;

@@ -36,10 +36,30 @@ const Debug = {
     host: 'localhost',
   },
 };
-if (process.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production') {
   module.exports = Production;
 } else {
   module.exports = Debug;
+}
+```
+
+cipher/jwt_config.js
+
+```
+module.exports = {
+  SECRET: 'fdafdsafasda',
+  expireIn: 86400000,
+}
+```
+
+cipher/password_config.js
+
+```
+module.exports = {
+  SALT: 'fdsaflksdjfladsjl',
+  ITERATIONS: 10000,
+  KEY_LENGTH: 512,
+  DIGEST: 'sha256',
 }
 ```
 

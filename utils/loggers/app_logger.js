@@ -11,7 +11,7 @@ const logger = new Logger({
       name: 'base_logger',
       filename: `${loggerSetting.path}app.log.`,
       prepend: false,
-      datePattern: 'yyyy-MM-dd.',
+      datePattern: 'yyyy-MM-dd',
       level: 'info',
     }),
   ],

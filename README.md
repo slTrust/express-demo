@@ -81,5 +81,11 @@ node scripts/es_index_init.js init_what_i_love_index
 node scripts/es_index_init.js clear_es_index
 ```
 
+### 添加拉取服务数据的脚本，而不是运行项目就去从头拉数据而是手动触发
+
+```
+node scripts/fetch_spider_data.js
+```
+
 
 

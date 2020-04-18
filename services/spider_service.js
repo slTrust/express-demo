@@ -1,6 +1,6 @@
 const axios = require('axios');
 const Spider = require('../models/mongoose/spider');
-
+const ESService = require('../services/es_service');
 const HTTPReqParamError = require('../errors/http_errors/http_request_param_error');
 const HTTPBaseError = require('../errors/http_errors/http_base_error');
 const logger = require('../utils/loggers/logger');
@@ -177,16 +177,18 @@ async function startFetchingProcess(spider) {
           spiderServiceContentId: c.contentId,
           contentType: c.contentType,
           content: c.content,
-          tags: c.content.tags,
+          tags: c.tags,
           title: c.title,
         };
       });
-      await Content.model.insertMany(wrappedContent);
+      // await Content.model.insertMany(wrappedContent);
+      const insertedList = await Content.model.insertMany(wrappedContent);
       // 录入数据后进行下次爬取 根据 latestId (wrappedContent里最后一条的spiderServiceContentId)
       latestId = wrappedContent[wrappedContent.length - 1].spiderServiceContentId;
       if (wrappedContent.length < pageSizeLimit) {
         clearInterval(intervalId);
       }
+      ESService.createOrUpdateContents(insertedList);
     })()
       .catch((e) => {
         logger.error(

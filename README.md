@@ -22,6 +22,9 @@ const Production = {
     port: 6379,
     host: 'localhost',
   },
+  elasticsearch: {
+    host: 'localhost:9200',
+  },
 };
 
 const Debug = {
@@ -34,6 +37,9 @@ const Debug = {
   redis: {
     port: 6379,
     host: 'localhost',
+  },
+  elasticsearch: {
+    host: 'localhost:9200',
   },
 };
 if (process.env.NODE_ENV === 'production') {

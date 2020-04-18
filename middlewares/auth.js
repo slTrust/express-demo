@@ -12,7 +12,7 @@ module.exports = (options) => {
       }
 
       const token = authorization.split(' ')[1];
-
+      console.log(token);
       if (!token) {
         throw new NoAuthError(null);
       }

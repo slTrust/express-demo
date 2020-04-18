@@ -286,16 +286,16 @@ async function initSpiders() {
   }
 }
 
-initSpiders()
-  .catch((e) => {
-    logger.error(
-      'error initializing spider processes',
-      {
-        errMsg: e.message,
-        errStack: e.stack,
-      },
-    );
-  });
+// initSpiders()
+//   .catch((e) => {
+//     logger.error(
+//       'error initializing spider processes',
+//       {
+//         errMsg: e.message,
+//         errStack: e.stack,
+//       },
+//     );
+//   });
 
 module.exports = {
   registerSpider,

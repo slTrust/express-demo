@@ -69,5 +69,17 @@ module.exports = {
 }
 ```
 
+#### 添加初始化脚本 用于 es 索引初始化
+
+- scripts/es_index_init.js
+
+```
+# 构建索引 
+node scripts/es_index_init.js init_what_i_love_index
+
+# 清除 本项目 相关的 es索引
+node scripts/es_index_init.js clear_es_index
+```
+
 
 

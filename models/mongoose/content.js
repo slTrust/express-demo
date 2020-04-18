@@ -8,6 +8,7 @@ const ContentSchema = new Schema({
   spiderServiceContentId: {
     type: String,
     required: true,
+    index: true,
   },
   spiderServiceId: {
     type: ObjectId,

@@ -1,10 +1,11 @@
 const axios = require('axios');
 const Spider = require('../models/mongoose/spider');
-const ESService = require('../services/es_service');
-const HTTPReqParamError = require('../errors/http_errors/http_request_param_error');
+const HTTPReqParamError = require(
+  '../errors/http_errors/http_request_param_error');
 const HTTPBaseError = require('../errors/http_errors/http_base_error');
 const logger = require('../utils/loggers/logger');
 const Content = require('../models/mongoose/content');
+const ESService = require('./es_service');
 
 /**
  *
@@ -63,6 +64,7 @@ async function registerSpider(spider) {
       'error validating spider validation url',
     );
   });
+
   if (res && res.data) {
     const spiderServiceResponseValidation = {
       code: (code) => {
@@ -126,9 +128,8 @@ async function registerSpider(spider) {
             'spider validation url can not return a empty content list obj',
           );
         }
-        if (!config.contentList.url
-            || !config.contentList.pageSizeLimit
-            || !config.contentList.frequencyLimit) {
+        if (!config.contentList.url || !config.contentList.pageSizeLimit ||
+          !config.contentList.frequencyLimit) {
           throw new HTTPBaseError(
             400,
             '配置错误：不完整的contentList对象',
@@ -165,41 +166,79 @@ async function startFetchingProcess(spider) {
   // frequencyLimit 频率 一秒内调用多少次
   const { url, pageSizeLimit, frequencyLimit } = contentList;
 
-  // 频率访问的最小时间间隔
   const actualPeriodMills = Math.ceil(1000 / frequencyLimit) * 2;
 
-  const intervalId = setInterval(() => {
-    (async () => {
-      const list = await fetchingLists(url, latestId, pageSizeLimit);
-      const wrappedContent = list.map((c) => {
-        return {
-          spiderServiceId: spider._id,
-          spiderServiceContentId: c.contentId,
-          contentType: c.contentType,
-          content: c.content,
-          tags: c.tags,
-          title: c.title,
-        };
-      });
-      // await Content.model.insertMany(wrappedContent);
-      const insertedList = await Content.model.insertMany(wrappedContent);
-      // 录入数据后进行下次爬取 根据 latestId (wrappedContent里最后一条的spiderServiceContentId)
-      latestId = wrappedContent[wrappedContent.length - 1].spiderServiceContentId;
-      if (wrappedContent.length < pageSizeLimit) {
-        clearInterval(intervalId);
-      }
-      ESService.createOrUpdateContents(insertedList);
-    })()
+  async function fetch(startTime, lastId) {
+    const list = await fetchingLists(url, lastId, pageSizeLimit);
+    const upsertPromises = [];
+    const wrappedContent = list.map((c) => {
+      const wrapped = {
+        spiderServiceId: spider._id,
+        spiderServiceContentId: c.contentId,
+        contentType: c.contentType,
+        content: c.content,
+        tags: c.tags,
+        title: c.title,
+      };
+
+      upsertPromises.push(Content.model.findOneAndUpdate(
+        { spiderServiceContentId: c.contentId },
+        wrapped,
+        {
+          upsert: true,
+          new: true,
+        },
+      ));
+      return wrapped;
+    });
+
+    const insertedOrUpdatedList = await Promise.all(upsertPromises)
       .catch((e) => {
         logger.error(
-          'error fetching list data from spider service',
-          {
-            errMsg: e.message,
-            errStack: e.stack,
-          },
+          'error inserting spider service content to db',
+          { err: e },
         );
       });
-  }, actualPeriodMills);
+
+    latestId = wrappedContent[wrappedContent.length -
+    1].spiderServiceContentId;
+
+    if (wrappedContent.length < pageSizeLimit) {
+      return;
+    }
+
+    ESService.createOrUpdateContents(insertedOrUpdatedList);
+
+    const endTime = Date.now().valueOf();
+    const timePassed = endTime - startTime;
+
+    const timeout = timePassed - actualPeriodMills < 0 ? actualPeriodMills -
+      timePassed : 0;
+    // 设置时间间隔 
+    setTimeout(() => {
+      fetch(endTime, latestId)
+        .catch((e) => {
+          logger.error(
+            'error fetching list data from spider service',
+            {
+              errMsg: e.message,
+              errStack: e.stack,
+            },
+          );
+        });
+    }, timeout);
+  }
+
+  fetch()
+    .catch((e) => {
+      logger.error(
+        'error fetching list data from spider service',
+        {
+          errMsg: e.message,
+          errStack: e.stack,
+        },
+      );
+    });
 }
 
 async function fetchingLists(url, latestId, pageSize) {
